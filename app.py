@@ -20,7 +20,7 @@ def operateOnInput(task):
     int_list = list(map(int, str_list))
 
     task = import_from("strats", task)
-    value = task.operation(1,2)
+    value = task.operation(int_list[0], int_list[1])
     print(value)
 
 def main():
