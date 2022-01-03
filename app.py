@@ -1,45 +1,50 @@
+import asyncio
 from os import listdir
 from os.path import isfile, join
-from abc import ABC, abstractmethod
 
-path = "./strats"
-files = [f for f in listdir(path) if isfile(join(path, f))]
+path = "operations"
+files = [f for f in listdir(path) if isfile(join(path, f)) and f.endswith(".py")]
 
 def import_from(module, name):
     module = __import__(module, fromlist=[name])
     return getattr(module, name)
 
-def printStrats(lst):
+def print_ops(lst):
     for f in lst:
         print(f.split(".")[0]) 
 
-def operateOnInput(task):
+async def handle_op(task):
     """Operate on user-defined input"""
-    values = input('Enter two integers separated by a comma and whitespace: ')
-    str_list  = list(values.split(', '))
-    int_list = list(map(int, str_list))
+    values = input('Enter numbers separated by a comma: ')
+    str_list  = list(values.split(','))
+    numbs = list(map(int, str_list))
 
-    task = import_from("strats", task)
-    value = task.operation(int_list[0], int_list[1])
-    print(value)
+    task = import_from(path, task)
+    task = asyncio.create_task(
+         task.operation(*numbs))
+    
+    print("Calculating ....")
+    print(f'Done result: {await task}')
 
-def main():
+async def main():
 
-    print('Welcome to the Small Calculator! What do you want to do? Available operations are')
-    printStrats(files)
+    print('Available operations are')
+    print_ops(files)
     task = input()
-    operateOnInput(task)
+    await handle_op(task)
             
     while True:
-        continuation = input('Keep calculating? Enter Y for yes, or N for no: ')
-        if continuation == 'Y':
+        choice = input('Keep calculating? (y/n)').lower()
+        continuation = choice == 'y' or choice == 'yes'
+
+        if continuation:
             print('Choose your operation. Available operations are')
-            printStrats(files)
+            print_ops(files)
             strat = input()
-            operateOnInput(strat)
-        elif continuation == 'N':
+            await handle_op(strat)
+        else:
             print('Goodbye!')
             break
           
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
